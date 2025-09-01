@@ -3,6 +3,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { ProtectrdRoute } from "./components/common";
 import { LoginPage, Dashboard } from "./pages";
 import TasksPage from "./pages/TasksPage";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 
 export default function App() {
   return (
@@ -10,6 +11,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route
             path="/dashboard"
             element={

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { loginSchema, signupSchema } from '../types/auth.types';
 import type { LoginData, SignupData } from '../types/auth.types';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export const LoginPage: React.FC = () => {
   const { signIn, signUp, resetPassword } = useAuth();
@@ -14,10 +14,20 @@ export const LoginPage: React.FC = () => {
 
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (user) navigate("/dashboard");
   }, [user, navigate]);
+
+  // Check for success message from password reset
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      // Clear the state to prevent the message from persisting
+      navigate('/login', { replace: true });
+    }
+  }, [location.state, navigate]);
 
   const [formData, setFormData] = useState({
     email: '',

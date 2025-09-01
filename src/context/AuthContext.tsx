@@ -69,12 +69,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (error) throw error;
   };
 
-  const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    if (error) throw error;
-  };
+const resetPassword = async (email: string) => {
+  const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+  
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${baseUrl}/reset-password`,
+  });
+  if (error) throw error;
+};
 
   return (
     <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, resetPassword }}>
