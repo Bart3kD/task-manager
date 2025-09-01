@@ -1,9 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectrdRoute } from "./components/common";
-import { LoginPage, Dashboard } from "./pages";
-import TasksPage from "./pages/TasksPage";
-import { ResetPasswordPage } from "./pages/ResetPasswordPage";
+import { LoginPage, Dashboard, TasksPage, ResetPasswordPage } from "./pages";
 
 export default function App() {
   return (

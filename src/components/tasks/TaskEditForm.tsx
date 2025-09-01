@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { TaskService } from '../../services/task.service';
 import { formToDbTask, taskFormSchema } from '../../types/task.types';
-import type { Task, TaskFormData } from '../../types/task.types';
+import type { Task, TaskFormData } from '../../types';
 import { ZodError } from 'zod';
 
 interface TaskEditFormProps {
@@ -26,7 +26,6 @@ export const TaskEditForm: React.FC<TaskEditFormProps> = ({
     priority: task.priority,
     status: task.status,
     dueDate: task.due_date ? task.due_date.split('T')[0] : '', // Convert to date input format
-    categoryId: task.category_id || undefined,
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {

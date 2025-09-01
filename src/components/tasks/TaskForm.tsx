@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TaskService } from '../../services/task.service';
-import { taskFormSchema, formToDbTask } from '../../types/task.types';
-import type { TaskFormData } from '../../types/task.types';
+import { taskFormSchema, formToDbTask } from '../../types';
+import type { TaskFormData } from '../../types';
 import { ZodError } from 'zod';
 
 interface TaskFormProps {
@@ -18,7 +18,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onTaskCreated, onCancel }) =
     priority: 'medium',
     status: 'todo',
     dueDate: '',
-    categoryId: undefined,
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -44,7 +43,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onTaskCreated, onCancel }) =
         priority: 'medium',
         status: 'todo',
         dueDate: '',
-        categoryId: undefined,
       });
       
       onTaskCreated?.();

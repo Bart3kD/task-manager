@@ -1,12 +1,12 @@
 import React from "react";
-import { TaskFilters as TaskFiltersType } from "@/types/task.types";
+import { TaskFiltersType } from "../../types";
 
 interface TaskFiltersProps {
   filters: TaskFiltersType;
   onChange: (updatedFilters: TaskFiltersType) => void;
 }
 
-export const TaskFiltersSelect: React.FC<TaskFiltersProps> = ({ filters, onChange }) => {
+export const TaskFilters: React.FC<TaskFiltersProps> = ({ filters, onChange }) => {
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -25,11 +25,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const handleNavigation = (path: string) => {
     navigate(path);
-    setIsMobileMenuOpen(false); // Close menu after navigation
+    setIsMobileMenuOpen(false);
   };
 
   const handleMobileSignOut = async () => {
-    setIsMobileMenuOpen(false); // Close menu first
+    setIsMobileMenuOpen(false);
     await handleSignOut();
   };
 
@@ -94,7 +94,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 viewBox="0 0 24 24"
               >
                 {isMobileMenuOpen ? (
-                  // X icon when menu is open
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -102,7 +101,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     d="M6 18L18 6M6 6l12 12"
                   />
                 ) : (
-                  // Hamburger icon when menu is closed
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

@@ -1,7 +1,5 @@
-// src/types/task.types.ts
 import { z } from 'zod';
 
-// Match your database schema exactly
 export interface Task {
   id: string;
   title: string;
@@ -9,19 +7,17 @@ export interface Task {
   completed: boolean;
   priority: Priority;
   status: TaskStatus;
-  due_date?: string | null;  // Match database column name
+  due_date?: string | null;
   created_at: string;
   updated_at: string;
   user_id: string;
-  category_id?: string | null;
 }
 
-// Match database enum exactly (includes 'urgent')
 export enum Priority {
   LOW = 'low',
   MEDIUM = 'medium',
   HIGH = 'high',
-  URGENT = 'urgent'  // This was missing!
+  URGENT = 'urgent'
 }
 
 export enum TaskStatus {
@@ -31,16 +27,13 @@ export enum TaskStatus {
   CANCELLED = 'cancelled'
 }
 
-// For API responses that might use camelCase
 export interface TaskDisplay extends Omit<Task, 'due_date' | 'created_at' | 'updated_at' | 'user_id' | 'category_id'> {
   dueDate?: string | null;
   createdAt: string;
   updatedAt: string;
   userId: string;
-  categoryId?: string | null;
 }
 
-// Zod schemas using string literals (more reliable than enum validation)
 export const createTaskSchema = z.object({
   title: z
     .string()
@@ -80,7 +73,6 @@ export const createTaskSchema = z.object({
       return parsedDate >= now;
     }, 'Due date cannot be in the past'),
 
-  category_id: z.uuid().optional().nullable(),
 });
 
 export const updateTaskSchema = z.object({
@@ -119,10 +111,8 @@ export const updateTaskSchema = z.object({
       return !isNaN(parsedDate.getTime());
     }, 'Please enter a valid date'),
 
-  category_id: z.string().uuid().optional().nullable(),
 });
 
-// For form handling (uses camelCase for better UX)
 export const taskFormSchema = z.object({
   title: z
     .string()
@@ -159,7 +149,6 @@ export const taskFormSchema = z.object({
       return parsedDate >= now;
     }, 'Due date cannot be in the past'),
 
-  categoryId: z.string().optional(),
 });
 
 export const taskFiltersSchema = z.object({
@@ -180,7 +169,7 @@ export const taskFiltersSchema = z.object({
 export type CreateTaskData = z.infer<typeof createTaskSchema>;
 export type UpdateTaskData = z.infer<typeof updateTaskSchema>;
 export type TaskFormData = z.infer<typeof taskFormSchema>;
-export type TaskFilters = z.infer<typeof taskFiltersSchema>;
+export type TaskFiltersType = z.infer<typeof taskFiltersSchema>;
 
 // Helper function to convert form data to database format
 export const formToDbTask = (formData: TaskFormData): CreateTaskData => ({
@@ -189,7 +178,6 @@ export const formToDbTask = (formData: TaskFormData): CreateTaskData => ({
   priority: formData.priority,
   status: formData.status,
   due_date: formData.dueDate || null,
-  category_id: formData.categoryId || null,
 });
 
 // Helper function to convert database task to display format
@@ -204,5 +192,4 @@ export const dbToDisplayTask = (dbTask: Task): TaskDisplay => ({
   createdAt: dbTask.created_at,
   updatedAt: dbTask.updated_at,
   userId: dbTask.user_id,
-  categoryId: dbTask.category_id,
 });

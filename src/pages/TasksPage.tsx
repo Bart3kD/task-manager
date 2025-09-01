@@ -3,14 +3,14 @@ import { useLocation } from 'react-router-dom';
 import { Layout } from '../components/layout/Layout';
 import { TaskForm } from '../components/tasks/TaskForm';
 import { TaskList } from '../components/tasks/TaskList';
-import { TaskFilters } from '@/types/task.types';
-import { TaskFiltersSelect } from '../components/tasks/TaskFilters';
+import { TaskFiltersType } from '@/types/';
+import { TaskFilters } from '../components/tasks/TaskFilters';
 
-export default function TasksPage() {
+export function TasksPage() {
   const location = useLocation();
   const [showForm, setShowForm] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
-  const [filters, setFilters] = useState<TaskFilters>({
+  const [filters, setFilters] = useState<TaskFiltersType>({
     sortBy: "created_at",
     sortOrder: "desc",
     limit: 10,
@@ -43,7 +43,7 @@ export default function TasksPage() {
           </button>
         </div>
 
-        <TaskFiltersSelect
+        <TaskFilters
           filters={filters}
           onChange={setFilters}
         />

@@ -1,8 +1,8 @@
 import { supabase } from './supabase';
-import type { Task, CreateTaskData, UpdateTaskData, TaskFilters } from '../types/task.types';
+import type { Task, CreateTaskData, UpdateTaskData, TaskFiltersType } from '../types/task.types';
 
 export class TaskService {
-  static async getTasks(filters?: Partial<TaskFilters>): Promise<Task[]> {
+  static async getTasks(filters?: Partial<TaskFiltersType>): Promise<Task[]> {
     let query = supabase
       .from('tasks')
       .select('*')

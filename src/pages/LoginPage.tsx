@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { loginSchema, signupSchema } from '../types/auth.types';
-import type { LoginData, SignupData } from '../types/auth.types';
+import { useAuth } from '../context';
+import { loginSchema, signupSchema } from '../types';
+import type { LoginData, SignupData } from '../types';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export const LoginPage: React.FC = () => {

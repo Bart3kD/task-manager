@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { TaskService } from '../../services/task.service';
 import { TaskCard } from './TaskCard';
-import type { Task, TaskFilters } from '../../types/task.types';
+import type { Task, TaskFiltersType } from '../../types';
 
 interface TaskListProps {
   reloadKey: number; // just a number that changes when we want to reload
-  filters?: TaskFilters;
+  filters?: TaskFiltersType;
 }
 
 export const TaskList = ({ reloadKey, filters }: TaskListProps) => {

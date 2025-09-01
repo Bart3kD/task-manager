@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TaskEditForm } from './TaskEditForm';
-import type { Task } from '../../types/task.types';
+import type { Task } from '../../types';
 
 interface TaskCardProps {
   task: Task;
