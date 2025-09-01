@@ -2,10 +2,18 @@ import { useState } from 'react';
 import { Layout } from '../components/layout/Layout';
 import { TaskForm } from '../components/tasks/TaskForm';
 import { TaskList } from '../components/tasks/TaskList';
+import { TaskFilters } from '@/types/task.types';
+import { TaskFiltersSelect } from '../components/tasks/TaskFilters';
 
 export default function TasksPage() {
   const [showForm, setShowForm] = useState(false);
   const [reloadKey, setReloadKey] = useState(0); // if value changes, TaskList reloads
+  const [filters, setFilters] = useState<TaskFilters>({
+    sortBy: "created_at",
+    sortOrder: "desc",
+    limit: 10,
+    offset: 0,
+  });
 
   const handleTaskCreated = async () => {
     setShowForm(false);
@@ -26,6 +34,11 @@ export default function TasksPage() {
           </button>
         </div>
 
+        <TaskFiltersSelect
+          filters={filters}
+          onChange={setFilters}
+        />
+
         {/* Task creation form */}
         {showForm && (
           <TaskForm
@@ -35,7 +48,7 @@ export default function TasksPage() {
         )}
 
         {/* Task list */}
-        <TaskList reloadKey={reloadKey} />
+        <TaskList reloadKey={reloadKey} filters={filters} />
       </div>
     </Layout>
   );

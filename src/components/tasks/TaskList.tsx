@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { TaskService } from '../../services/task.service';
 import { TaskCard } from './TaskCard';
-import type { Task } from '../../types/task.types';
+import type { Task, TaskFilters } from '../../types/task.types';
 
 interface TaskListProps {
   reloadKey: number; // just a number that changes when we want to reload
+  filters?: TaskFilters;
 }
 
-export const TaskList = ({ reloadKey }: TaskListProps) => {
+export const TaskList = ({ reloadKey, filters }: TaskListProps) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +17,7 @@ export const TaskList = ({ reloadKey }: TaskListProps) => {
     try {
       setLoading(true);
       setError(null);
-      const fetchedTasks = await TaskService.getTasks();
+      const fetchedTasks = await TaskService.getTasks(filters);
       setTasks(fetchedTasks);
     } catch (err: any) {
       setError(err.message || 'Failed to load tasks');
@@ -29,7 +30,7 @@ export const TaskList = ({ reloadKey }: TaskListProps) => {
   // reload when mounted OR when reloadKey changes
   useEffect(() => {
     loadTasks();
-  }, [reloadKey]);
+  }, [reloadKey, filters]);
 
   const handleToggleTask = async (taskId: string) => {
     try {
