@@ -19,7 +19,12 @@ export class TaskService {
     }
     
     if (filters?.status) {
-      query = query.eq('status', filters.status);
+      if (filters.status === 'completed') {
+        // Treat 'completed' status as completed = true
+        query = query.eq('completed', true);
+      } else {
+        query = query.eq('status', filters.status);
+      }
     }
     
     if (filters?.search) {
