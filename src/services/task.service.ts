@@ -1,9 +1,7 @@
-// src/services/task.service.ts
 import { supabase } from './supabase';
 import type { Task, CreateTaskData, UpdateTaskData, TaskFilters } from '../types/task.types';
 
 export class TaskService {
-  // Get all tasks for current user
   static async getTasks(filters?: Partial<TaskFilters>): Promise<Task[]> {
     let query = supabase
       .from('tasks')
@@ -36,6 +34,7 @@ export class TaskService {
       query = query.gte('due_date', filters.dueAfter);
     }
 
+    // Pagination
     if (filters?.limit) {
       query = query.limit(filters.limit);
     }
@@ -58,7 +57,7 @@ export class TaskService {
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') return null;
+      if (error.code === 'PGRST116') return null; // Not found
       throw error;
     }
     
@@ -103,13 +102,12 @@ export class TaskService {
     if (error) throw error;
   }
 
-  static async toggleTask(id: string): Promise<Task> {
+  static async toggleCompletion(id: string): Promise<Task> {
     const task = await this.getTask(id);
     if (!task) throw new Error('Task not found');
 
     const updates: Partial<UpdateTaskData> = {
       completed: !task.completed,
-      status: !task.completed ? 'completed' : 'todo',
     };
 
     return this.updateTask(id, updates);
@@ -127,20 +125,27 @@ export class TaskService {
     if (error) throw error;
 
     const tasks = data || [];
-    const now = new Date();
-    
-    return {
-      total: tasks.length,
-      completed: tasks.filter(t => t.completed).length,
-      pending: tasks.filter(t => !t.completed).length,
-      todo: tasks.filter(t => t.status === 'todo').length,
-      inProgress: tasks.filter(t => t.status === 'in_progress').length,
-      urgent: tasks.filter(t => t.priority === 'urgent').length,
-      overdue: tasks.filter(t => 
-        !t.completed && 
-        t.due_date && 
-        new Date(t.due_date) < now
-      ).length,
-    };
+const now = new Date();
+const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+return {
+  total: tasks.length,
+  completed: tasks.filter(t => t.completed).length,
+  pending: tasks.filter(t => !t.completed).length,
+  todo: tasks.filter(t => t.status === 'todo').length,
+  inProgress: tasks.filter(t => t.status === 'in_progress').length,
+  urgent: tasks.filter(t => t.priority === 'urgent').length,
+  overdue: tasks.filter(t =>
+    !t.completed &&
+    t.due_date &&
+    new Date(t.due_date) < today // strictly before today
+  ).length,
+  dueToday: tasks.filter(t =>
+    !t.completed &&
+    t.due_date &&
+    new Date(t.due_date).toDateString() === today.toDateString()
+  ).length
+};
+
   }
 }

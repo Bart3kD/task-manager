@@ -1,13 +1,14 @@
-import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+// src/components/tasks/TaskList.tsx
+import { useState, useEffect } from 'react';
 import { TaskService } from '../../services/task.service';
 import { TaskCard } from './TaskCard';
 import type { Task } from '../../types/task.types';
 
-interface TaskListRef {
-  refresh: () => Promise<void>;
+interface TaskListProps {
+  reloadKey: number; // just a number that changes when we want to reload
 }
 
-export const TaskList = forwardRef<TaskListRef>((_props, ref) => {
+export const TaskList = ({ reloadKey }: TaskListProps) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,20 +27,16 @@ export const TaskList = forwardRef<TaskListRef>((_props, ref) => {
     }
   };
 
-  // Expose refresh method to parent
-  useImperativeHandle(ref, () => ({
-    refresh: loadTasks
-  }));
-
+  // reload when mounted OR when reloadKey changes
   useEffect(() => {
     loadTasks();
-  }, []);
+  }, [reloadKey]);
 
   const handleToggleTask = async (taskId: string) => {
     try {
-      const updatedTask = await TaskService.toggleTask(taskId);
-      setTasks(prevTasks => 
-        prevTasks.map(task => 
+      const updatedTask = await TaskService.toggleCompletion(taskId);
+      setTasks(prevTasks =>
+        prevTasks.map(task =>
           task.id === taskId ? updatedTask : task
         )
       );
@@ -48,9 +45,17 @@ export const TaskList = forwardRef<TaskListRef>((_props, ref) => {
     }
   };
 
+  const handleUpdateTask = (updatedTask: Task) => {
+    setTasks(prevTasks =>
+      prevTasks.map(task =>
+        task.id === updatedTask.id ? updatedTask : task
+      )
+    );
+  };
+
   const handleDeleteTask = async (taskId: string) => {
     if (!confirm('Are you sure you want to delete this task?')) return;
-    
+
     try {
       await TaskService.deleteTask(taskId);
       setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
@@ -75,7 +80,7 @@ export const TaskList = forwardRef<TaskListRef>((_props, ref) => {
         <div className="bg-red-50 border border-red-200 rounded-md p-4">
           <div className="text-red-800">
             Error: {error}
-            <button 
+            <button
               onClick={loadTasks}
               className="ml-2 text-red-600 hover:text-red-800 underline"
             >
@@ -100,14 +105,14 @@ export const TaskList = forwardRef<TaskListRef>((_props, ref) => {
             <h2 className="text-lg font-semibold text-gray-900">
               Your Tasks ({tasks.length})
             </h2>
-            <button 
+            <button
               onClick={loadTasks}
               className="text-blue-600 hover:text-blue-800 text-sm"
             >
               Refresh
             </button>
           </div>
-          
+
           <div className="space-y-3">
             {tasks.map(task => (
               <TaskCard
@@ -115,6 +120,7 @@ export const TaskList = forwardRef<TaskListRef>((_props, ref) => {
                 task={task}
                 onToggle={handleToggleTask}
                 onDelete={handleDeleteTask}
+                onUpdate={handleUpdateTask}
               />
             ))}
           </div>
@@ -122,4 +128,4 @@ export const TaskList = forwardRef<TaskListRef>((_props, ref) => {
       )}
     </div>
   );
-});
+};

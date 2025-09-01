@@ -1,13 +1,23 @@
-import React from 'react';
+// src/components/tasks/TaskCard.tsx
+import React, { useState } from 'react';
+import { TaskEditForm } from './TaskEditForm';
 import type { Task } from '../../types/task.types';
 
 interface TaskCardProps {
   task: Task;
   onToggle: (taskId: string) => void;
   onDelete: (taskId: string) => void;
+  onUpdate: (updatedTask: Task) => void;
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggle, onDelete }) => {
+export const TaskCard: React.FC<TaskCardProps> = ({ 
+  task, 
+  onToggle, 
+  onDelete, 
+  onUpdate 
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return null;
     try {
@@ -37,8 +47,30 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggle, onDelete }) 
     }
   };
 
-  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && !task.completed;
+  const dueDate = task.due_date ? new Date(task.due_date) : null;
+  const today = new Date();
+  const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
+  const isOverdue = dueDate !== null && dueDate < todayMidnight && !task.completed;
+  const isDueToday = dueDate !== null && dueDate.toDateString() === today.toDateString();
+
+
+  const handleTaskUpdated = (updatedTask: Task) => {
+    setIsEditing(false);
+    onUpdate(updatedTask);
+  };
+
+  if (isEditing) {
+    return (
+      <TaskEditForm
+        task={task}
+        onTaskUpdated={handleTaskUpdated}
+        onCancel={() => setIsEditing(false)}
+      />
+    );
+  }
+
+  // Show normal task card
   return (
     <div className={`bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-shadow ${
       isOverdue ? 'border-red-300 bg-red-50' : 'border-gray-200'
@@ -88,26 +120,40 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggle, onDelete }) 
 
               {/* Status badge */}
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                getStatusColor(task.status)
+                getStatusColor( task.completed ? 'completed' : task.status )
               }`}>
-                {task.status.replace('_', ' ')}
+                { task.completed ? 'completed' : task.status.replace('_', ' ')}
               </span>
 
               {/* Due date */}
-              {task.due_date && (
-                <span className={`text-xs ${
-                  isOverdue ? 'text-red-600 font-medium' : 'text-gray-500'
-                }`}>
-                  Due: {formatDate(task.due_date)}
-                  {isOverdue && ' (Overdue)'}
-                </span>
-              )}
+{task.due_date && (
+  <span className={`text-xs ${
+    isOverdue ? 'text-red-600 font-medium' 
+    : isDueToday ? 'text-orange-600 font-medium' 
+    : 'text-gray-500'
+  }`}>
+    Due: {formatDate(task.due_date)}
+    {isOverdue && ' (Overdue)'}
+    {isDueToday && ' (Due Today)'}
+  </span>
+)}
+
             </div>
           </div>
         </div>
 
         {/* Action buttons */}
         <div className="flex items-center space-x-2 ml-4">
+          <button
+            onClick={() => setIsEditing(true)}
+            className="text-gray-400 hover:text-blue-600 transition-colors"
+            title="Edit task"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </button>
+          
           <button
             onClick={() => onDelete(task.id)}
             className="text-gray-400 hover:text-red-600 transition-colors"

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TaskService } from '../../services/task.service';
 import { taskFormSchema, formToDbTask } from '../../types/task.types';
 import type { TaskFormData } from '../../types/task.types';
+import { ZodError } from 'zod';
 
 interface TaskFormProps {
   onTaskCreated?: () => void;
@@ -49,12 +50,12 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onTaskCreated, onCancel }) =
       onTaskCreated?.();
       
     } catch (err: any) {
-      if (err.errors) {
-        setError(err.errors[0].message);
+      if (err instanceof ZodError) {
+        setError(err.issues[0]?.message || 'Validation error');
       } else if (err.message) {
         setError(err.message);
       } else {
-        setError('Failed to create task. Please try again.');
+        setError('Failed to update task. Please try again.');
       }
     } finally {
       setIsLoading(false);

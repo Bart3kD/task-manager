@@ -1,22 +1,15 @@
-// src/pages/TasksPage.tsx
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Layout } from '../components/layout/Layout';
 import { TaskForm } from '../components/tasks/TaskForm';
 import { TaskList } from '../components/tasks/TaskList';
 
-// Define the ref interface
-interface TaskListRef {
-  refresh: () => Promise<void>;
-}
-
 export default function TasksPage() {
   const [showForm, setShowForm] = useState(false);
-  const taskListRef = useRef<TaskListRef>(null);
+  const [reloadKey, setReloadKey] = useState(0); // if value changes, TaskList reloads
 
   const handleTaskCreated = async () => {
     setShowForm(false);
-    // Refresh the task list
-    await taskListRef.current?.refresh();
+    setReloadKey(prev => prev + 1); // reload task list after creating a task
   };
 
   return (
@@ -42,7 +35,7 @@ export default function TasksPage() {
         )}
 
         {/* Task list */}
-        <TaskList ref={taskListRef} />
+        <TaskList reloadKey={reloadKey} />
       </div>
     </Layout>
   );
