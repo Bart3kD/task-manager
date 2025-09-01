@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Layout } from '../components/layout/Layout';
 import { TaskForm } from '../components/tasks/TaskForm';
 import { TaskList } from '../components/tasks/TaskList';
@@ -6,8 +7,9 @@ import { TaskFilters } from '@/types/task.types';
 import { TaskFiltersSelect } from '../components/tasks/TaskFilters';
 
 export default function TasksPage() {
+  const location = useLocation();
   const [showForm, setShowForm] = useState(false);
-  const [reloadKey, setReloadKey] = useState(0); // if value changes, TaskList reloads
+  const [reloadKey, setReloadKey] = useState(0);
   const [filters, setFilters] = useState<TaskFilters>({
     sortBy: "created_at",
     sortOrder: "desc",
@@ -15,9 +17,16 @@ export default function TasksPage() {
     offset: 0,
   });
 
+  useEffect(() => {
+    if (location.state?.showForm) {
+      setShowForm(true);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
   const handleTaskCreated = async () => {
     setShowForm(false);
-    setReloadKey(prev => prev + 1); // reload task list after creating a task
+    setReloadKey(prev => prev + 1);
   };
 
   return (

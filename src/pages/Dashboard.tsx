@@ -41,6 +41,10 @@ export function Dashboard() {
     }
   };
 
+  const handleCreateNewTask = () => {
+    navigate('/tasks', { state: { showForm: true } });
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -51,7 +55,7 @@ export function Dashboard() {
             </h1>
             <button
               onClick={handleSignOut}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors hidden md:block"
             >
               Sign Out
             </button>
@@ -110,7 +114,7 @@ export function Dashboard() {
             </button>
             
             <button
-              onClick={() => navigate('/tasks')}
+              onClick={handleCreateNewTask}
               className="flex items-center justify-center px-4 py-3 border border-green-300 text-green-700 rounded-md hover:bg-green-50 transition-colors"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
