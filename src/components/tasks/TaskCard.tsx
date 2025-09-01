@@ -1,4 +1,3 @@
-// src/components/tasks/TaskCard.tsx
 import React, { useState } from 'react';
 import { TaskEditForm } from './TaskEditForm';
 import type { Task } from '../../types/task.types';
@@ -70,7 +69,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     );
   }
 
-  // Show normal task card
   return (
     <div className={`bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-shadow ${
       isOverdue ? 'border-red-300 bg-red-50' : 'border-gray-200'
@@ -126,17 +124,17 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               </span>
 
               {/* Due date */}
-{task.due_date && (
-  <span className={`text-xs ${
-    isOverdue ? 'text-red-600 font-medium' 
-    : isDueToday ? 'text-orange-600 font-medium' 
-    : 'text-gray-500'
-  }`}>
-    Due: {formatDate(task.due_date)}
-    {isOverdue && ' (Overdue)'}
-    {isDueToday && ' (Due Today)'}
-  </span>
-)}
+              {task.due_date && (
+              <span className={`text-xs ${
+                  isOverdue ? 'text-red-600 font-medium' 
+                  : isDueToday ? 'text-orange-600 font-medium' 
+                  : 'text-gray-500'
+              }`}>
+                  Due: {formatDate(task.due_date)}
+                  {isOverdue && ' (Overdue)'}
+                  {isDueToday && ' (Due Today)'}
+              </span>
+              )}
 
             </div>
           </div>

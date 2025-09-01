@@ -1,4 +1,3 @@
-// src/components/tasks/TaskList.tsx
 import { useState, useEffect } from 'react';
 import { TaskService } from '../../services/task.service';
 import { TaskCard } from './TaskCard';

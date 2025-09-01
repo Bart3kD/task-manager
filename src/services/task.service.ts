@@ -125,27 +125,26 @@ export class TaskService {
     if (error) throw error;
 
     const tasks = data || [];
-const now = new Date();
-const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-return {
-  total: tasks.length,
-  completed: tasks.filter(t => t.completed).length,
-  pending: tasks.filter(t => !t.completed).length,
-  todo: tasks.filter(t => t.status === 'todo').length,
-  inProgress: tasks.filter(t => t.status === 'in_progress').length,
-  urgent: tasks.filter(t => t.priority === 'urgent').length,
-  overdue: tasks.filter(t =>
-    !t.completed &&
-    t.due_date &&
-    new Date(t.due_date) < today // strictly before today
-  ).length,
-  dueToday: tasks.filter(t =>
-    !t.completed &&
-    t.due_date &&
-    new Date(t.due_date).toDateString() === today.toDateString()
-  ).length
-};
-
+    return {
+      total: tasks.length,
+      completed: tasks.filter(t => t.completed).length,
+      pending: tasks.filter(t => !t.completed).length,
+      todo: tasks.filter(t => t.status === 'todo').length,
+      inProgress: tasks.filter(t => t.status === 'in_progress').length,
+      urgent: tasks.filter(t => t.priority === 'urgent').length,
+      overdue: tasks.filter(t =>
+        !t.completed &&
+        t.due_date &&
+        new Date(t.due_date) < today
+      ).length,
+      dueToday: tasks.filter(t =>
+        !t.completed &&
+        t.due_date &&
+        new Date(t.due_date).toDateString() === today.toDateString()
+      ).length
+    };
   }
 }

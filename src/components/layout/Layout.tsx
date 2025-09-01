@@ -1,4 +1,3 @@
-// src/components/layout/Layout.tsx
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -29,7 +28,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center h-16">
-            {/* Logo/Brand and Navigation */}
+            {/* Brand name and navigation */}
             <div className="flex items-center space-x-8">
               <h1 className="text-xl font-bold text-gray-900">TaskManager</h1>
               

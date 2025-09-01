@@ -1,7 +1,7 @@
 // src/components/tasks/TaskEditForm.tsx
 import React, { useState } from 'react';
 import { TaskService } from '../../services/task.service';
-import { taskFormSchema } from '../../types/task.types';
+import { formToDbTask, taskFormSchema } from '../../types/task.types';
 import type { Task, TaskFormData } from '../../types/task.types';
 import { ZodError } from 'zod';
 
@@ -41,20 +41,10 @@ export const TaskEditForm: React.FC<TaskEditFormProps> = ({
     setError(null);
 
     try {
-      // Validate form data
       const validatedData = taskFormSchema.parse(formData);
+
+      const updates = formToDbTask(validatedData);
       
-      // Convert to database format
-      const updates = {
-        title: validatedData.title,
-        description: validatedData.description || null,
-        priority: validatedData.priority,
-        status: validatedData.status,
-        due_date: validatedData.dueDate || null,
-        category_id: validatedData.categoryId || null,
-      };
-      
-      // Update task
       const updatedTask = await TaskService.updateTask(task.id, updates);
       onTaskUpdated(updatedTask);
       
