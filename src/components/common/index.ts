@@ -1,0 +1,1 @@
+export { ProtectrdRoute } from './ProtectedRoute';
