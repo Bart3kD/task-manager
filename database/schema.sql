@@ -3,6 +3,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TYPE priority_level AS ENUM ('low', 'medium', 'high', 'urgent');
 CREATE TYPE task_status AS ENUM ('todo', 'in_progress', 'completed', 'cancelled');
 
+
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
@@ -10,6 +11,16 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   avatar_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.categories (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  name TEXT NOT NULL CHECK (length(name) > 0 AND length(name) <= 50),
+  color TEXT DEFAULT '#3B82F6' CHECK (color ~ '^#[0-9A-Fa-f]{6}$'),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  UNIQUE(name, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS public.tasks (
@@ -22,7 +33,8 @@ CREATE TABLE IF NOT EXISTS public.tasks (
   due_date TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS public.task_attachments (
@@ -37,13 +49,16 @@ CREATE TABLE IF NOT EXISTS public.task_attachments (
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL
 );
 
--- Indexes
+
+
 CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON public.tasks(user_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON public.tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_priority ON public.tasks(priority);
 CREATE INDEX IF NOT EXISTS idx_tasks_completed ON public.tasks(completed);
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON public.tasks(due_date);
 CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON public.tasks(created_at);
+CREATE INDEX IF NOT EXISTS idx_tasks_category_id ON public.tasks(category_id);
+CREATE INDEX IF NOT EXISTS idx_categories_user_id ON public.categories(user_id);
 CREATE INDEX IF NOT EXISTS idx_task_attachments_task_id ON public.task_attachments(task_id);
 CREATE INDEX IF NOT EXISTS idx_task_attachments_user_id ON public.task_attachments(user_id);
 
@@ -53,10 +68,9 @@ CREATE INDEX IF NOT EXISTS idx_tasks_user_due_date ON public.tasks(user_id, due_
 CREATE INDEX IF NOT EXISTS idx_tasks_user_priority ON public.tasks(user_id, priority);
 CREATE INDEX IF NOT EXISTS idx_tasks_status_due_date ON public.tasks(status, due_date);
 
-CREATE INDEX IF NOT EXISTS idx_incomplete_tasks ON public.tasks(due_date, priority) 
-WHERE completed = false;
+CREATE INDEX IF NOT EXISTS idx_incomplete_tasks ON public.tasks(due_date, priority) WHERE completed = false;
 
--- Triggers for updated_at
+
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -68,19 +82,6 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = '';
 
-CREATE TRIGGER update_profiles_updated_at 
-  BEFORE UPDATE ON public.profiles 
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_tasks_updated_at 
-  BEFORE UPDATE ON public.tasks 
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_task_attachments_updated_at 
-  BEFORE UPDATE ON public.task_attachments 
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Handle new users
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -93,11 +94,6 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = '';
 
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
--- Ownership functions
 CREATE OR REPLACE FUNCTION public.user_owns_task(task_uuid UUID, user_uuid UUID DEFAULT auth.uid())
 RETURNS BOOLEAN AS $$
 BEGIN
@@ -111,7 +107,19 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = '';
 
--- Task summary
+CREATE OR REPLACE FUNCTION public.user_owns_category(category_uuid UUID, user_uuid UUID DEFAULT auth.uid())
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.categories 
+    WHERE id = category_uuid AND user_id = user_uuid
+  );
+END;
+$$ 
+LANGUAGE plpgsql 
+SECURITY DEFINER
+SET search_path = '';
+
 CREATE OR REPLACE FUNCTION public.get_user_task_summary(target_user_id UUID DEFAULT auth.uid())
 RETURNS TABLE (
   user_id UUID,
@@ -157,18 +165,57 @@ BEGIN
 END;
 $$;
 
--- Row Level Security
+CREATE OR REPLACE FUNCTION enforce_future_due_date()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.due_date IS NOT NULL AND NEW.due_date < NOW() THEN
+    RAISE EXCEPTION 'Due date cannot be in the past';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER update_profiles_updated_at 
+  BEFORE UPDATE ON public.profiles 
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_tasks_updated_at 
+  BEFORE UPDATE ON public.tasks 
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_categories_updated_at 
+  BEFORE UPDATE ON public.categories 
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_task_attachments_updated_at 
+  BEFORE UPDATE ON public.task_attachments 
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+CREATE TRIGGER trg_enforce_future_due_date
+  BEFORE INSERT OR UPDATE ON public.tasks
+  FOR EACH ROW
+  EXECUTE FUNCTION enforce_future_due_date();
+
+
+
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.task_attachments ENABLE ROW LEVEL SECURITY;
 
--- Policies
+
 CREATE POLICY "Users can view their own profile" ON public.profiles
   FOR SELECT USING (auth.uid() = id AND auth.role() = 'authenticated');
 
 CREATE POLICY "Users can update their own profile" ON public.profiles
   FOR UPDATE USING (auth.uid() = id AND auth.role() = 'authenticated');
 
+-- Tasks table policies
 CREATE POLICY "Users can view their own tasks" ON public.tasks
   FOR SELECT USING (auth.uid() = user_id);
 
@@ -181,6 +228,20 @@ CREATE POLICY "Users can update their own tasks" ON public.tasks
 CREATE POLICY "Users can delete their own tasks" ON public.tasks
   FOR DELETE USING (auth.uid() = user_id);
 
+-- Categories table policies
+CREATE POLICY "Users can view their own categories" ON public.categories
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create their own categories" ON public.categories
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own categories" ON public.categories
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own categories" ON public.categories
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- Task attachments table policies
 CREATE POLICY "Users can view attachments of their own tasks" ON public.task_attachments
   FOR SELECT USING (
     auth.uid() = user_id AND 
@@ -205,10 +266,11 @@ CREATE POLICY "Users can delete attachments of their own tasks" ON public.task_a
     public.user_owns_task(task_id)
   );
 
--- Grants
+
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
 
 GRANT EXECUTE ON FUNCTION public.user_owns_task(UUID, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.user_owns_category(UUID, UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_user_task_summary(UUID) TO authenticated;
