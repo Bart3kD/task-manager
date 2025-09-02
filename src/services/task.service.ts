@@ -23,7 +23,7 @@ export class TaskService {
         // Treat 'completed' status as completed = true
         query = query.eq('completed', true);
       } else {
-        query = query.eq('status', filters.status);
+        query = query.eq('status', filters.status).eq('completed', false);
       }
     }
     
